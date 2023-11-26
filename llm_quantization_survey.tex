@@ -40,13 +40,13 @@
 %\usetheme{Ilmenau}
 %\usetheme{JuanLesPins}
 %\usetheme{Luebeck}
-\usetheme{Madrid}
+%\usetheme{Madrid}
 %\usetheme{Malmoe}
 %\usetheme{Marburg}
 %\usetheme{Montpellier}
 %\usetheme{PaloAlto}
 %\usetheme{Pittsburgh}
-%\usetheme{Rochester}
+\usetheme{Rochester}
 %\usetheme{Singapore}
 %\usetheme{Szeged}
 %\usetheme{Warsaw}
@@ -68,7 +68,7 @@
 %\usecolortheme{seagull}
 %\usecolortheme{seahorse}
 %\usecolortheme{whale}
-%\usecolortheme{wolverine}
+\usecolortheme{wolverine}
 
 %\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
 %\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
@@ -213,14 +213,14 @@ decoration={snake,
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
-\title[Topological Manifolds]{Topological Manifolds} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[LLM Survey]{LLM Survey} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Piyush Kaul} % Your name
 \institute[IITD] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
-EE Dept. (IIT-D) \\ % Your institution for the title page
+ \\ % Your institution for the title page
 \medskip
-\textit{piyushkaul@gmail.org} % Your email address
+\textit{piyushkaul@ieee.org} % Your email address
 }
 \date{\today} % Date, can be changed to a custom date
 
@@ -240,54 +240,72 @@ EE Dept. (IIT-D) \\ % Your institution for the title page
 %----------------------------------------------------------------------------------------
 
 %------------------------------------------------
-\section{Topology} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\section{LoRA} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
 
 
 \begin{frame}
-\frametitle{Topology}
-\begin{definition}
-  Let $M$ be a set and $\mathcal{P}(M)$ be the power set of $M$, i.e., the set of all subsets of $M$.   \\
-A set $\mathcal{O} \subseteq \mathcal{P}(M)$ is called a \textbf{topology}, if it satisfies the following:
+\frametitle{LoRA - Low Rank Adaptation of LLM}
+Objective
 \begin{enumerate}
-  \item[(i)] $\emptyset \in \mathcal{O}$, $M \in \mathcal{O}$ 
-\item[(ii)] $U \in \mathcal{O}$, \, $V \in \mathcal{O} \implies U \cap V \in \mathcal{O}$ 
-\item[(iii)] $U_{\alpha} \in \mathcal{O}$, \, $\alpha \in \mathcal{A}$ ($\mathcal{A} \text{ is an index set )} \implies \left( \bigcup_{\alpha \in \mathcal{A}} U_{\alpha} \right) \in \mathcal{O}$
+  \item The trained LLMs are generic. Need to be fined tuned for tasks. 
+  \item Not possible to train LLM without enormous amout of GPUS/Compute power.
+  \item Weight changes due to fine tuning can be modelled as Low Rank layers in parallel.
+  \item We only allow the added Low Rank Dcomposition layers to tain.
+  \item For GPT3, 175 MB, low rank of 2 is adequate. Full rank being quite large.
 \end{enumerate}
-\end{definition}
+\end{frame}
 
+\begin{frame}[shrink]
+\frametitle{LoRA - Low Rank Adaptation of LLM}
+For pre-trained matrix $W_0$, the augmented networks is defined as.
+\begin{align}
+    W_0 + \delta W = W_0 + BA
+\end{align}
+where $B \in R^{d \times r}$ and $A\in R^{r\times k}$
+\begin{enumerate}
+\item $W_0$ stays frozen whereas only B and A are trained
+\item The basic model weight set $W_0$ is common across tasks and only B and A need to be switched.
+\item Generalization is possible for full fine-tuning as well.
+\item Only the attention weights need to be fine tuned. The MLP weight can stay frozen.
+\end{enumerate}
 \end{frame}
 
 \begin{frame}
-\frametitle{Open and Close Sets}
-\textbf{Terminology}:
+\frametitle{LoRA - Results}
 \begin{enumerate}
-\item the tuple $(M , \mathcal{O})$ is a \textbf{topological space}.
-\item $\mathcal{U} \in M$ is an \textbf{open set} if $\mathcal{U} \in \mathcal{O}$.
-\item $\mathcal{U} \in M$ is a \textbf{closed set} if $M \setminus \mathcal{U} \in \mathcal{O}$.
+    \item Reduce memory size by 1000 times. 350 GB $\to$ 35 MB
 \end{enumerate}
-
-\begin{definition}
-  $(M , \mathcal{O})$, where $\mathcal{O} = \lbrace \emptyset, M\rbrace$ is called the \textbf{chaotic topology}.
-\end{definition}
-
-\begin{definition}
-  $(M , \mathcal{O})$, where $\mathcal{O} = \mathcal{P}(M)$ is called the \textbf{discrete topology}.
-\end{definition}
 \end{frame}
 
 
 \begin{frame}
-\frametitle{Topology Examples}
+\frametitle{LoRA - Layer Decomposition}
 \begin{figure}
-%\includegraphics[width=5cm]{topology_examples}
+    \centering
+    \includegraphics[width=0.5\linewidth]{lora.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
 \end{figure}
 \end{frame}
 
 
+\begin{frame}
+\frametitle{QLoRA: Efficient Finetuning of Quantized LLM}
+QLoRA reduces memory requirement from $>$ 700 GB of GPU to <48 GB
+Following advantages are mentioned
+\begin{enumerate}
+    \item 4-bit Normal Float. Better than 4-bit integer and 4-bit float
+    \item Double Quantization. Quantizing Quant info (saving of approx 3GB for 65 GB)
+    \item Paged Optimizers. Avoid gradient checkpointing spikes.
+\end{enumerate}
+\end{frame}
+Additional points
 
-\section{Parallel Transport}
-\section{Lie Groups and Algebras}
+\section{QLoRA}
+\section{ZeroQuant-FP}
+\section{GPTQ}
+\section{Optimal Brain Compression}
 
 
 %------------------------------------------------
