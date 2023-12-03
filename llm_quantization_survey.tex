@@ -292,7 +292,7 @@ where $B \in R^{d \times r}$ and $A\in R^{r\times k}$
 
 \begin{frame}
 \frametitle{QLoRA: Efficient Finetuning of Quantized LLM}
-QLoRA reduces memory requirement from $>$ 700 GB of GPU to <48 GB
+QLoRA reduces memory requirement from $>$ 700 GB of GPU to $<$48 GB
 Following advantages are mentioned
 \begin{enumerate}
     \item 4-bit Normal Float. Better than 4-bit integer and 4-bit float
@@ -300,8 +300,24 @@ Following advantages are mentioned
     \item Paged Optimizers. Avoid gradient checkpointing spikes.
 \end{enumerate}
 \end{frame}
-Additional points
 
+\begin{frame}[shrink]
+    \frametitle{QLoRA: 4-bit Normal Float}
+    \begin{enumerate}
+        \item Storage as 4b NF. Convert to BF16 for usage.
+        \item The main limitation of quantile quantization is estimating quantiles.
+        \item We fix the datatype range [-1,1]. The quantiles of datatype and NN weights need to be matched
+        \item Estimate $2^{k+1}$ quantiles for $N(0,1)$ to obtain k-bit quantile regression
+        \item Normalize its values in [-1, 1] range
+        \item Quantize input by Rescaling to [-1,1] range
+    \end{enumerate}                        
+
+    \begin{align}
+        q_i = \frac{1}{2} (Qx(\frac{i}{2^k+1}) + Qx(\fram{i+1}{2^k+1})    
+    \end{align}
+    To solve the problem or representing zero exactly, we do this separately for +ve and -ve range.
+\end{frame}                        
+                        
 \section{QLoRA}
 \section{ZeroQuant-FP}
 \section{GPTQ}
