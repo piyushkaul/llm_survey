@@ -93,6 +93,7 @@
 
 \usepackage{amssymb,latexsym}
 \usepackage{amsmath, amsthm}
+\usepackage{mathabx}
 
 %for bibliography; installation using 'sudo tlmgr install amsrefs'
 \usepackage{amsrefs}
@@ -152,6 +153,7 @@ decoration={snake,
 \numberwithin{equation}{section}
 \numberwithin{figure}{section}
 \numberwithin{theorem}{section}
+\usepackage{bibentry}
 
 %symbol for maps
 \renewcommand{\to}{\longrightarrow}
@@ -290,14 +292,16 @@ where $B \in R^{d \times r}$ and $A\in R^{r\times k}$
 \end{frame}
 
 
+                        
+\section{QLoRA}
 \begin{frame}
-\frametitle{QLoRA: Efficient Finetuning of Quantized LLM}
+\frametitle{QLoRA: Efficient Fine-tuning of Quantized LLM}
 QLoRA reduces memory requirement from $>$ 700 GB of GPU to $<$48 GB
 Following advantages are mentioned
 \begin{enumerate}
     \item 4-bit Normal Float. Better than 4-bit integer and 4-bit float
     \item Double Quantization. Quantizing Quant info (saving of approx 3GB for 65 GB)
-    \item Paged Optimizers. Avoid gradient checkpointing spikes.
+    \item Paged Optimizers. Avoid gradient check pointing spikes.
 \end{enumerate}
 \end{frame}
 
@@ -309,42 +313,111 @@ Following advantages are mentioned
         \item We fix the datatype range [-1,1]. The quantiles of datatype and NN weights need to be matched
         \item Estimate $2^{k+1}$ quantiles for $N(0,1)$ to obtain k-bit quantile regression
         \item Normalize its values in [-1, 1] range
-        \item Quantize input by Rescaling to [-1,1] range
+        \item Quantize input by Re scaling to [-1,1] range
     \end{enumerate}                        
 
     \begin{align}
-        q_i = \frac{1}{2} (Qx(\frac{i}{2^k+1}) + Qx(\fram{i+1}{2^k+1})    
+        q_i = \frac{1}{2} (Qx(\frac{i}{2^k+1}) + Qx(\frac{i+1}{2^k+1})    
     \end{align}
     To solve the problem or representing zero exactly, we do this separately for +ve and -ve range.
 \end{frame}                        
-                        
-\section{QLoRA}
+
+
 \section{ZeroQuant-FP}
+\begin{frame}
+\frametitle{ZeroQuant-FP}
+Contribution
+\begin{enumerate}
+    \item Negligible degradation from FP16 to FP8
+    \item FP8 activation along with FP4 weights. LoRC compensates quantization error for w4a8
+    \item FP4 need to be converter to FP8 for inference. Can be done dynamically. Complexity reduction by having scale factors only in power of 2
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{distribution.png}
+    \caption{Distribution of Activation Values}
+    \label{fig:distribution-of-activation}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{ZeroQuant-FP - Observations}
+\begin{enumerate}
+    \item Input to q-proj is Normal
+    \item the output of q-proj and FC are skewed
+    \item Integer distribution is not idea to process skewness
+    \begin{align}
+        Q(x) = INT(X- Z/S) - Z
+    \end{align}
+    \item Integer quantization not ideal for outliers.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\frametitle{Techniques Used}
+\begin{enumerate}
+    \item Zero Quant V2 (FGQ and Token Wise Quantization)
+    \item LoRC
+    \item $Casting \neq 4$ FP8 with restricted scale
+
+\end{enumerate}
+Two methods used
+\begin{enumerate}
+    \item Map to nearest values represented by power of t2 i.e. $\hat{S} = 2^{log_2(S)}$
+    \item Collect scale in vector $s= [S_1,.. S_x]$. Take maximum and denote by $S_{max}$. Adjust  $S_{max}/s$
+\end{enumerate}
+\end{frame}
+
+
+
+
+\begin{frame}{Zero Quant FP}
+    To be represented by power of 2. Then define
+    \begin{align}
+    \hat{S_i} = S_{max}/2 [log_2][S_{max}/S_i]    
+    \end{align}
+\end{frame}
+\section{Outlier Suppression}
+
+\begin{frame}{Outlier Suppression}
+\begin{enumerate}
+    \item Channel Wise Shifting and  Scaling
+    \begin{align}
+        \Tilde{X} = (X - Z) \bigodiv s
+    \end{align}
+    \item Unified migration pattern
+    \begin{align}
+    \Tilde(X) \bigodiv s) W^T + zW^T + b = (\Tilde{X} \bigodiv s ) W^T + zW^T + b \\
+    = \Tilde{X} (w^T \bigodiv s^T) + (zW^T + b)
+    \end{align}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Joint Optimization}
+Joint Optimization of weights and activations is done by minimizing quantization loss
+Activation loss is given by
+\begin{align}
+    min_s[[||Q((X-Z]\bigodiv s) - (X-Z) \bigodiv s||^2_F]
+\end{align}
+
+
+    
+\end{frame}
+
 \section{GPTQ}
 \section{Optimal Brain Compression}
 
 
 %------------------------------------------------
 
-\begin{frame}
+\begin{frame}[t, allowframebreaks]
 \frametitle{References}
-\footnotesize{
-\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Schuller, 2012]{p1}  Fredric Schuller(2012)
-\textit{Lectures on Geometrical Anatomy of Physics}
-%\verb{https://www.youtube.com/watch?v=V49i_LM8B0E}
-
-\bibitem[Isham, 1989]{p2} Chris Isham(1989)
-\textit{ Modern Differential Geometry for Physicists}
-
-\bibitem[Nash, 1989]{p3} Charles Nash(2011)
-\textit{ Topology and Geometry for Physics }
-
-\bibitem[Nakahara, 2003]{p4} Mikio Nakahara(2003)
-\textit{ Geometry, Topology and Physics}
-
-\end{thebibliography}
-}
+%\bibliographystyle{amsalpha}
+%\bibliography{references}
 \end{frame}
 
 %------------------------------------------------
