@@ -24,7 +24,7 @@
 % of all the themes, uncomment each in turn to see what they look like.
 
 %\usetheme{default}
-%\usetheme{AnnArbor}
+\usetheme{AnnArbor}
 %\usetheme{Antibes}
 %\usetheme{Bergen}
 %\usetheme{Berkeley}
@@ -46,7 +46,7 @@
 %\usetheme{Montpellier}
 %\usetheme{PaloAlto}
 %\usetheme{Pittsburgh}
-\usetheme{Rochester}
+%\usetheme{Rochester}
 %\usetheme{Singapore}
 %\usetheme{Szeged}
 %\usetheme{Warsaw}
@@ -56,7 +56,7 @@
 % changes the colors of your current slide theme.
 
 %\usecolortheme{albatross}
-%\usecolortheme{beaver}
+\usecolortheme{beaver}
 %\usecolortheme{beetle}
 %\usecolortheme{crane}
 %\usecolortheme{dolphin}
@@ -68,7 +68,7 @@
 %\usecolortheme{seagull}
 %\usecolortheme{seahorse}
 %\usecolortheme{whale}
-\usecolortheme{wolverine}
+%\usecolortheme{wolverine}
 
 %\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
 %\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
@@ -330,7 +330,8 @@ Contribution
 \begin{enumerate}
     \item Negligible degradation from FP16 to FP8
     \item FP8 activation along with FP4 weights. LoRC compensates quantization error for w4a8
-    \item FP4 need to be converter to FP8 for inference. Can be done dynamically. Complexity reduction by having scale factors only in power of 2
+    \item FP4 weights need to be converted to FP8 for inference. Can be done dynamically. 
+    \item Complexity reduction by having scale factors only in power of 2
 \end{enumerate}
 \end{frame}
 
@@ -348,8 +349,8 @@ Contribution
 \frametitle{ZeroQuant-FP - Observations}
 \begin{enumerate}
     \item Input to q-proj is Normal
-    \item the output of q-proj and FC are skewed
-    \item Integer distribution is not idea to process skewness
+    \item The output of q-proj and FC are skewed
+    \item Integer quantization is not ideal to process skewness
     \begin{align}
         Q(x) = INT(X- Z/S) - Z
     \end{align}
@@ -358,14 +359,22 @@ Contribution
 \end{frame}
 
 \begin{frame}
+\frametitle{INT8 vs FP8}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{int8_vs_fp8.png}
+    \label{fig:in8_vs_fp8}
+\end{figure}
+\end{frame}
+
+\begin{frame}
 \frametitle{Techniques Used}
 \begin{enumerate}
     \item Zero Quant V2 (FGQ and Token Wise Quantization)
     \item LoRC
-    \item $Casting \neq 4$ FP8 with restricted scale
-
+    \item Casting FP8 to FP4 with restricted scale
 \end{enumerate}
-Two methods used
+Two methods used for restricting the scale
 \begin{enumerate}
     \item Map to nearest values represented by power of t2 i.e. $\hat{S} = 2^{log_2(S)}$
     \item Collect scale in vector $s= [S_1,.. S_x]$. Take maximum and denote by $S_{max}$. Adjust  $S_{max}/s$
@@ -378,8 +387,55 @@ Two methods used
 \begin{frame}{Zero Quant FP}
     To be represented by power of 2. Then define
     \begin{align}
-    \hat{S_i} = S_{max}/2 [log_2][S_{max}/S_i]    
+    \hat{S_i} = S_{max}/2^{ [log_2(S_{max}/S_i)]}    
     \end{align}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{results_int8_vs_fp4.png}
+    \caption{Results}
+    \label{fig:int4_vs_fp4_results}
+\end{figure}
+\end{frame}
+\section{Zero Quant V2}
+
+
+\begin{frame}
+\frametitle {Zero Quant V2: Sensitivity Analysis}
+\begin{enumerate}
+\item INT8 weight-only quantization can serve as a standard
+method for reducing memory costs in LLMs, with negligible degradation in accuracy.
+\item INT4
+weight-only quantization for small models results in substantial accuracy degradation (Class-3), but
+this effect lessens as the model size increases (Class-2)
+\item Contrary to (2), INT8 activation results in
+minimal accuracy drops for small models (Class-1) but larger models exhibit greater drops (Class-3).
+\item  With INT8 activation, BLOOM shows no divergence issues up to a model size of 176B, whereas
+OPT performs poorly from ≥ 6.7B model sizes.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[shrink]
+Following Algorithms were tried.
+\begin{enumerate}
+    \item RTN
+    \item GPTQ
+    \item ZQ-Global
+    \item ZQ-Local
+\end{enumerate}
+Following results were obtained
+\begin{enumerate}
+    \item GPTQ typically performs better for weight-only quantization, while
+ZeroQuant (including both ZQ-Global and ZQ-Local
+) yields superior results for weight and activation
+quantization. 
+    \item The tested optimization-based methods cannot achieve Class-1 quantization error
+for either INT4 weight-only or W4A8 quantization with the exception of GPTQ on OPT-30B with
+weight-only quantization.
+\end{enumerate}
 \end{frame}
 \section{Outlier Suppression}
 
@@ -402,14 +458,67 @@ Joint Optimization of weights and activations is done by minimizing quantization
 Activation loss is given by
 \begin{align}
     min_s[[||Q((X-Z]\bigodiv s) - (X-Z) \bigodiv s||^2_F]
+\end{align}  
+\end{frame}
+\section{Optimal Brain Surgeon}
+\begin{frame}
+\frametitle{Optimal Brain Surgeon}
+\begin{enumerate}
+    \item OBS permits a 90\%, a 76\%, and a 62\% reduction in weights over back-propagation with weight decay on three benchmark Monk's problems 
+    \item Of OBS, Optimal Brain Damage, and magnitude-based methods, only OBS deletes the correct weights from a trained XOR network in every case. 
+    \item Optimal Brain Surgeon makes no restrictive assumptions about the form of the network's Hessian, and thereby eliminates the correct weights. 
+    \item OBS does not demand (typically slow) retraining after the pruning of a weight
+\end{enumerate}
+\end{frame}
+\begin{frame}[shrink]
+\frametitle{Optimal Brain Surgeon}
+Taylor series of error with respect to weights is 
+\begin{align}
+    \delta E = \left(\frac{\partial E }{\partial \mathbf{w}}\right) \cdot \delta\mathbf{w} + \frac{1}{2} \delta \mathbf{w}^T \cdot \mathbf{H} \cdot \delta w + O(|| \delta \mathbf{w} ||^3)
+\end{align}
+With training convergence, 1st term is assumed zero. Third term is also ignored.
+For pruning we express
+\begin{align}
+    e^T_q \cdot \delta w  + w_q = 0
+\end{align}
+Using the above two We form the Lagrangian
+\begin{align}
+\frac{1}{2} \delta w^T \cdot H \cdot \delta w + \lambda (e^T_q \cdot \delta w + w_q)
 \end{align}
 
-
-    
 \end{frame}
-
-\section{GPTQ}
+\begin{frame}{Optimal Brain Surgeon}
+We solve the above Lagrangian to arrive at the optimal weight change
+\begin{align}
+    \delta w = \frac{w_q}{[\mathbf{H}^{-1}_{qq}]}\mathbf{H}^{-1} e_q
+\end{align}
+and corresponding change in loss
+\begin{align}
+\delta L_q = \frac{1}{2} \frac{W_q^2}{H^{-1}_{qq}}
+\end{align}
+\end{frame}
+\begin{frame}{Optimum Brain Surgeon}
+\begin{enumerate}
+    \item Train a "reasonably large" network to minimum error.
+    \item Compute $H^{-1}$ .
+    \item Find the q that gives the smallest saliency $L_q = W_q^2/(2[H^{-1}]_{qq})$. If this candidate error
+            increase is much smaller than E, then the qth weight should be deleted, and we
+            proceed to step 4; otherwise go to step 5. (Other stopping criteria can be used too.)
+    \item Use the q from step 3 to update all weights (Eq. 5). Go to step 2.
+    \item No more weights can be deleted without large increase in E. (At this point it may be
+desirable to retrain the network.
+\end{enumerate}
+\end{frame}
+\begin{frame}[OBS]
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{obs.png}
+    \caption{Enter Caption}
+    \label{fig:enter-label}
+\end{figure}
+\end{frame}
 \section{Optimal Brain Compression}
+\section{GPTQ}
 
 
 %------------------------------------------------
