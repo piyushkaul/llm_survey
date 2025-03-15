@@ -217,8 +217,8 @@ decoration={snake,
 %----------------------------------------------------------------------------------------
 \title[LLM Survey]{LLM Survey} % The short title appears at the bottom of every slide, the full title is only on the title page
 
-\author{Piyush Kaul} % Your name
-\institute[IITD] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+\author{Piyush Kaul } % Your name
+\institute[https://piyushkaul.github.io] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
  \\ % Your institution for the title page
 \medskip
@@ -403,20 +403,20 @@ Two methods used for restricting the scale
 \section{Zero Quant V2}
 
 
-\begin{frame}
-\frametitle {Zero Quant V2: Sensitivity Analysis}
-\begin{enumerate}
-\item INT8 weight-only quantization can serve as a standard
-method for reducing memory costs in LLMs, with negligible degradation in accuracy.
-\item INT4
-weight-only quantization for small models results in substantial accuracy degradation (Class-3), but
-this effect lessens as the model size increases (Class-2)
-\item Contrary to (2), INT8 activation results in
-minimal accuracy drops for small models (Class-1) but larger models exhibit greater drops (Class-3).
-\item  With INT8 activation, BLOOM shows no divergence issues up to a model size of 176B, whereas
-OPT performs poorly from ≥ 6.7B model sizes.
-\end{enumerate}
-\end{frame}
+%\begin{frame}
+%\frametitle {Zero Quant V2: Sensitivity Analysis}
+%\begin{enumerate}
+%\item INT8 weight-only quantization can serve as a standard
+%method for reducing memory costs in LLMs, with negligible degradation in accuracy.
+%\item INT4
+%weight-only quantization for small models results in substantial accuracy degradation (Class-3), but
+%this effect lessens as the model size increases (Class-2)
+%\item Contrary to (2), INT8 activation results in
+%minimal accuracy drops for small models (Class-1) but larger models exhibit greater drops (Class-3).
+%\item  With INT8 activation, BLOOM shows no divergence issues up to a model size of 176B, whereas
+%OPT performs poorly from ≥ 6.7B model sizes.
+%\end{enumerate}
+%\end{frame}
 
 \begin{frame}[shrink]
 Following Algorithms were tried.
@@ -509,7 +509,7 @@ and corresponding change in loss
 desirable to retrain the network.
 \end{enumerate}
 \end{frame}
-\begin{frame}[OBS]
+\begin{frame}
 \begin{figure}
     \centering
     \includegraphics[width=0.9\linewidth]{obs.png}
