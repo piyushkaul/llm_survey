@@ -24,7 +24,7 @@
 % of all the themes, uncomment each in turn to see what they look like.
 
 %\usetheme{default}
-\usetheme{AnnArbor}
+%\usetheme{AnnArbor}
 %\usetheme{Antibes}
 %\usetheme{Bergen}
 %\usetheme{Berkeley}
@@ -43,7 +43,7 @@
 %\usetheme{Madrid}
 %\usetheme{Malmoe}
 %\usetheme{Marburg}
-%\usetheme{Montpellier}
+\usetheme{Montpellier}
 %\usetheme{PaloAlto}
 %\usetheme{Pittsburgh}
 %\usetheme{Rochester}
@@ -56,24 +56,26 @@
 % changes the colors of your current slide theme.
 
 %\usecolortheme{albatross}
-\usecolortheme{beaver}
+%\usecolortheme{beaver}
 %\usecolortheme{beetle}
 %\usecolortheme{crane}
 %\usecolortheme{dolphin}
 %\usecolortheme{dove}
 %\usecolortheme{fly}
 %\usecolortheme{lily}
-%\usecolortheme{orchid}
+\usecolortheme{orchid}
 %\usecolortheme{rose}
 %\usecolortheme{seagull}
 %\usecolortheme{seahorse}
 %\usecolortheme{whale}
 %\usecolortheme{wolverine}
-
+%\usecolortheme{structure}
 %\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
-%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+\setbeamertemplate{headline}{}
+%\useoutertheme{shadow}
 
-%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
 }
 
 \usepackage{graphicx} % Allows including images
@@ -215,7 +217,7 @@ decoration={snake,
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
-\title[LLM Survey]{LLM Survey} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[LLM Quantization Survey]{LLM Quantization Survey} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Piyush Kaul } % Your name
 \institute[https://piyushkaul.github.io] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
@@ -242,7 +244,7 @@ decoration={snake,
 %----------------------------------------------------------------------------------------
 
 %------------------------------------------------
-\section{LoRA} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\section{QLoRA} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
 
 
@@ -293,7 +295,7 @@ where $B \in R^{d \times r}$ and $A\in R^{r\times k}$
 
 
                         
-\section{QLoRA}
+
 \begin{frame}
 \frametitle{QLoRA: Efficient Fine-tuning of Quantized LLM}
 QLoRA reduces memory requirement from $>$ 700 GB of GPU to $<$48 GB
@@ -493,9 +495,12 @@ We solve the above Lagrangian to arrive at the optimal weight change
     \delta w = \frac{w_q}{[\mathbf{H}^{-1}_{qq}]}\mathbf{H}^{-1} e_q
 \end{align}
 and corresponding change in loss
+\begin{definition}Loss
 \begin{align}
-\delta L_q = \frac{1}{2} \frac{W_q^2}{H^{-1}_{qq}}
+	\delta L_q = \frac{1}{2} \frac{W_q^2}{H^{-1}_{qq}}
 \end{align}
+
+\end{definition}
 \end{frame}
 \begin{frame}{Optimum Brain Surgeon}
 \begin{enumerate}
@@ -517,9 +522,41 @@ desirable to retrain the network.
     \label{fig:enter-label}
 \end{figure}
 \end{frame}
+\section{Adaround}
+\begin{frame}
+	\frametitle{Adaround}
+	Round to nearest is simples approach to quantization.  Weight vector w is rounded to nearest representable quantization grid value
+	\begin{align}
+		\hat{w} = s . clip \left(\biggl\lfloor \frac{w}{s} \biggr\rceil, n, p \right)
+	\end{align}
+	The Adaround paper has the following contributions
+	\begin{itemize}
+		\item Formulate rounding problem as unconstrained binary optimization problem
+		\item device a novel mothod for per-layer formulation via continuous relaxation utilizing small amount of unlabelled data.
+		\item Compare Adaround with other techniques
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Motivation}
+	
+	
+\end{frame}
 \section{Optimal Brain Compression}
+
 \section{GPTQ}
 
+\section{QuIP}
+\begin{frame}
+	\frametitle{QuIP}
+\end{frame}
+\section{QuIP\#}
+\begin{frame}
+	\frametitle{QuIP\#}
+	
+\end{frame}
+\section{QuaROT}
+\section{SpinQuant}
 
 %------------------------------------------------
 
